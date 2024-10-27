@@ -21,6 +21,13 @@ const Login = () => {
       dispatch(clearErrors());
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+  
   const handleLoginWithEmail = (event) => {
     event.preventDefault();
     dispatch(loginWithEmail({ email, password }));
