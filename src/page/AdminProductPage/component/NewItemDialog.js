@@ -33,8 +33,6 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
   const dispatch = useDispatch();
   const [stockError, setStockError] = useState(false);
 
-  console.log("stock", stock);
-
   useEffect(() => {
     if (success) setShowDialog(false);
   }, [success]);
@@ -66,8 +64,6 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // console.log("formdata", formData)
-    // console.log("formdata", stock);
     //재고를 입력했는지 확인, 아니면 에러
     if(stock.length === 0) return setStockError(true);
 
@@ -75,12 +71,10 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
     const totalStock = stock.reduce((total, item)=>{
       return {...total, [item[0]]:parseInt(item[1])}
     },{})
-
-    console.log("formDta", totalStock);
-
     // [['M',2]] 에서 {M:2}로
     if (mode === "new") {
       //새 상품 만들기
+      dispatch(createProduct({...formData, stock: totalStock}))
     } else {
       // 상품 수정하기
     }

@@ -7,10 +7,10 @@ import { getProductList } from "../../features/product/productSlice";
 
 const LandingPage = () => {
   const dispatch = useDispatch();
-
   const productList = useSelector((state) => state.product.productList);
   const [query] = useSearchParams();
   const name = query.get("name");
+  
   useEffect(() => {
     dispatch(
       getProductList({
@@ -19,6 +19,10 @@ const LandingPage = () => {
     );
   }, [query]);
 
+  // useEffect(() => {
+  //   dispatch(getProductList());
+  // }, [dispatch]);
+    
   return (
     <Container>
       <Row>
