@@ -23,6 +23,7 @@ const InitialFormData = {
 };
 
 const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
+
   const { error, success, selectedProduct } = useSelector(
     (state) => state.product
   );
@@ -33,9 +34,18 @@ const NewItemDialog = ({ mode, showDialog, setShowDialog }) => {
   const dispatch = useDispatch();
   const [stockError, setStockError] = useState(false);
 
+  // useEffect(() => {
+  //   if (success) setShowDialog(false);
+  // }, [success]);
+
   useEffect(() => {
-    if (success) setShowDialog(false);
-  }, [success]);
+    if (success) {
+      setShowDialog(false);
+      dispatch(clearError()); // 성공 시 에러 상태 초기화
+    } else if (error) {
+      dispatch(clearError()); // 에러 발생 시 에러 초기화
+    }
+  }, [success, error, dispatch]);
 
   useEffect(() => {
     if (error || !success) {
