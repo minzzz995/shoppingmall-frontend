@@ -14,7 +14,19 @@ const initialState = {
 // Async thunk actions
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ id, size }, { rejectWithValue, dispatch }) => {}
+  async ({ id, size }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.post("/cart", { productId: id, size });
+      if (response.status !== 200) throw new Error(response.error);
+
+      dispatch(showToastMessage({ message: "상품이 카트에 추가되었습니다.", status: "success" }));
+      dispatch(getCartQty()); // 카트 아이콘의 카운트를 증가시키기 위해 갱신 호출
+      return response.data.data;
+    } catch (error) {
+      dispatch(showToastMessage({ message: "카트에 추가 실패", status: "error" }));
+      return rejectWithValue(error.error);
+    }
+  }
 );
 
 export const getCartList = createAsyncThunk(
@@ -34,7 +46,16 @@ export const updateQty = createAsyncThunk(
 
 export const getCartQty = createAsyncThunk(
   "cart/getCartQty",
-  async (_, { rejectWithValue, dispatch }) => {}
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.get("/cart/quantity");
+      if (response.status !== 200) throw new Error(response.error);
+
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.error);
+    }
+  }
 );
 
 const cartSlice = createSlice({
@@ -46,7 +67,23 @@ const cartSlice = createSlice({
     },
     // You can still add reducers here for non-async actions if necessary
   },
-  extraReducers: (builder) => {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(addToCart.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addToCart.fulfilled, (state) => {
+        state.loading = false;
+        state.error = "";
+      })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getCartQty.fulfilled, (state, action) => {
+        state.cartItemCount = action.payload; // cartItemCount 갱신
+      });
+  },
 });
 
 export default cartSlice.reducer;

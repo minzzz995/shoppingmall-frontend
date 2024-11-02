@@ -25,7 +25,7 @@ const ProductDetail = () => {
     if (!user) {
       navigate("/login"); // 로그인하지 않은 유저는 로그인 페이지로 이동
     } else {
-      dispatch(addToCart({ ...selectedProduct, size })); // 장바구니에 상품 추가
+      dispatch(addToCart({ id: selectedProduct._id, size })); // 장바구니에 상품 추가
     }
   };
 
