@@ -11,19 +11,35 @@ const initialState = {
   totalPrice: 0,
 };
 
-// Async thunk actions
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
-  async ({ id, size }, { rejectWithValue, dispatch }) => {
+  async ({ id, size }, { rejectWithValue, dispatch, getState }) => {
     try {
-      const response = await api.post("/cart", { productId: id, size });
+      // 현재 장바구니 리스트 가져오기
+      const currentCartList = getState().cart.cartList;
+
+      // 동일한 상품 및 사이즈가 있는지 확인
+      const isDuplicate = currentCartList.some(
+        (item) => item.productId._id === id && item.size === size
+      );
+
+      if (isDuplicate) {
+        // 동일한 상품이 존재하면 ToastMessage 띄우기
+        dispatch(
+          showToastMessage({ message: "이미 동일 상품이 장바구니에 있습니다.", status: "error" })
+        );
+        return rejectWithValue("Duplicate item exists");
+      }
+
+      // API 호출하여 아이템 추가
+      const response = await api.post("/cart", { productId: id, size, qty: 1 });
       if (response.status !== 200) throw new Error(response.error);
 
+      // 성공 메시지 및 cartItemQty 반환
       dispatch(showToastMessage({ message: "상품이 카트에 추가되었습니다.", status: "success" }));
-      dispatch(getCartQty()); // 카트 아이콘의 카운트를 증가시키기 위해 갱신 호출
-      return response.data.data;
+      return response.data.cartItemQty;
     } catch (error) {
-      dispatch(showToastMessage({ message: "카트에 추가 실패", status: "error" }));
+      dispatch(showToastMessage({ message: "카트에 아이템 추가 실패", status: "error" }));
       return rejectWithValue(error.error);
     }
   }
@@ -31,28 +47,47 @@ export const addToCart = createAsyncThunk(
 
 export const getCartList = createAsyncThunk(
   "cart/getCartList",
-  async (_, { rejectWithValue, dispatch }) => {}
-);
-
-export const deleteCartItem = createAsyncThunk(
-  "cart/deleteCartItem",
-  async (id, { rejectWithValue, dispatch }) => {}
-);
-
-export const updateQty = createAsyncThunk(
-  "cart/updateQty",
-  async ({ id, value }, { rejectWithValue }) => {}
-);
-
-export const getCartQty = createAsyncThunk(
-  "cart/getCartQty",
   async (_, { rejectWithValue, dispatch }) => {
     try {
-      const response = await api.get("/cart/quantity");
+      const response = await api.get("/cart");
       if (response.status !== 200) throw new Error(response.error);
 
       return response.data.data;
     } catch (error) {
+      return rejectWithValue(error.error);
+    }
+  }
+);
+
+export const deleteCartItem = createAsyncThunk(
+  "cart/deleteCartItem",
+  async (itemId, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.delete(`/cart/${itemId}`);
+      if (response.status !== 200) throw new Error(response.error);
+
+      dispatch(showToastMessage({ message: "상품이 카트에서 삭제되었습니다.", status: "success" }));
+      dispatch(getCartList()); // 카트 리스트와 카운트 업데이트
+      return itemId;
+    } catch (error) {
+      dispatch(showToastMessage({ message: "카트 아이템 삭제 실패", status: "error" }));
+      return rejectWithValue(error.error);
+    }
+  }
+);
+
+export const updateQty = createAsyncThunk(
+  "cart/updateQty",
+  async ({ itemId, qty }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.patch(`/cart/${itemId}/qty`, { qty });
+      if (response.status !== 200) throw new Error(response.error);
+
+      dispatch(getCartList()); // 카트 리스트 및 가격 갱신
+      dispatch(showToastMessage({ message: "수량이 성공적으로 업데이트되었습니다.", status: "success" }));
+      return response.data.data;
+    } catch (error) {
+      dispatch(showToastMessage({ message: "카트 아이템 수량 업데이트 실패", status: "error" }));
       return rejectWithValue(error.error);
     }
   }
@@ -65,24 +100,36 @@ const cartSlice = createSlice({
     initialCart: (state) => {
       state.cartItemCount = 0;
     },
-    // You can still add reducers here for non-async actions if necessary
   },
   extraReducers: (builder) => {
     builder
       .addCase(addToCart.pending, (state) => {
         state.loading = true;
       })
-      .addCase(addToCart.fulfilled, (state) => {
+      .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
         state.error = "";
+        // state.cartItemCount=action.payload;
+        state.cartItemCount += 1;
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(getCartQty.fulfilled, (state, action) => {
-        state.cartItemCount = action.payload; // cartItemCount 갱신
-      });
+      .addCase(getCartList.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getCartList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = "";
+        state.cartList = action.payload;
+        state.cartItemCount = action.payload.reduce((total, item) => total + item.qty, 0);
+        state.totalPrice=action.payload.reduce((total, item)=>total+item.productId.price*item.qty, 0)
+      })
+      .addCase(getCartList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
   },
 });
 

@@ -6,21 +6,24 @@ import Sidebar from "../common/component/Sidebar";
 import Navbar from "../common/component/Navbar";
 import ToastMessage from "../common/component/ToastMessage";
 import { loginWithToken } from "../features/user/userSlice";
-import { getCartQty } from "../features/cart/cartSlice";
+import { getCartList } from "../features/cart/cartSlice";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user); // 로그인 상태 확인
 
-  const { user } = useSelector((state) => state.user);
   useEffect(() => {
     dispatch(loginWithToken());
-  }, []);
+  }, [dispatch]);
+
+  // 로그인한 사용자의 장바구니 정보 가져오기
   useEffect(() => {
     if (user) {
-      dispatch(getCartQty());
+      dispatch(getCartList());
     }
-  }, [user]);
+  }, [user, dispatch]);
+
   return (
     <div>
       <ToastMessage />

@@ -9,7 +9,7 @@ const CartProductCard = ({ item }) => {
   const dispatch = useDispatch();
 
   const handleQtyChange = (id, value) => {
-    dispatch(updateQty({ id, value }));
+    dispatch(updateQty({ itemId: id, qty: value }));
   };
 
   const deleteCart = (id) => {
