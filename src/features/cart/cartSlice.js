@@ -18,6 +18,12 @@ export const addToCart = createAsyncThunk(
       // 현재 장바구니 리스트 가져오기
       const currentCartList = getState().cart.cartList;
 
+      // // 만약 현재 장바구니 리스트가 비어 있으면 `getCartList`를 호출하여 보충
+      // if (currentCartList.length === 0) {
+      //   await dispatch(getCartList());
+      //   currentCartList = getState().cart.cartList; // 업데이트된 장바구니 리스트 가져오기
+      // }
+
       // 동일한 상품 및 사이즈가 있는지 확인
       const isDuplicate = currentCartList.some(
         (item) => item.productId._id === id && item.size === size
@@ -37,6 +43,8 @@ export const addToCart = createAsyncThunk(
 
       // 성공 메시지 및 cartItemQty 반환
       dispatch(showToastMessage({ message: "상품이 카트에 추가되었습니다.", status: "success" }));
+      await dispatch(getCartList());
+
       return response.data.cartItemQty;
     } catch (error) {
       dispatch(showToastMessage({ message: "카트에 아이템 추가 실패", status: "error" }));
@@ -110,7 +118,7 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = "";
         // state.cartItemCount=action.payload;
-        state.cartItemCount += 1;
+        // state.cartItemCount += 1;
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
@@ -123,7 +131,8 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = "";
         state.cartList = action.payload;
-        state.cartItemCount = action.payload.reduce((total, item) => total + item.qty, 0);
+        state.cartItemCount = action.payload.length;
+        // state.cartItemCount = action.payload.reduce((total, item) => total + item.qty, 0);
         state.totalPrice=action.payload.reduce((total, item)=>total+item.productId.price*item.qty, 0)
       })
       .addCase(getCartList.rejected, (state, action) => {
