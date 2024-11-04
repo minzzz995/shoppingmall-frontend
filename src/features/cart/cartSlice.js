@@ -107,6 +107,8 @@ const cartSlice = createSlice({
   reducers: {
     initialCart: (state) => {
       state.cartItemCount = 0;
+      state.totalPrice = 0;
+      state.cartList = [];
     },
   },
   extraReducers: (builder) => {

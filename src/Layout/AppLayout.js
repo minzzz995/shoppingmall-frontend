@@ -1,15 +1,17 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { Col, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "../common/component/Sidebar";
 import Navbar from "../common/component/Navbar";
 import ToastMessage from "../common/component/ToastMessage";
 import { loginWithToken } from "../features/user/userSlice";
-import { getCartList } from "../features/cart/cartSlice";
+import { getCartList, initialCart } from "../features/cart/cartSlice";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user); // 로그인 상태 확인
 
@@ -21,8 +23,11 @@ const AppLayout = ({ children }) => {
   useEffect(() => {
     if (user) {
       dispatch(getCartList());
+    } else {
+      dispatch(initialCart()); // 로그아웃 시 카트 초기화
+      navigate("/login"); // 로그아웃 상태에서 로그인 페이지로 이동
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, navigate]);
 
   return (
     <div>
