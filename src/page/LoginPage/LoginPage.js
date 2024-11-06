@@ -7,7 +7,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./style/login.style.css";
 import { loginWithEmail, loginWithGoogle } from "../../features/user/userSlice";
 import { clearErrors } from "../../features/user/userSlice";
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT;
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -35,6 +35,7 @@ const Login = () => {
 
   const handleGoogleLogin = async (googleData) => {
     //구글 로그인 하기
+    dispatch(loginWithGoogle(googleData.credential))
   };
 
   if (user) {

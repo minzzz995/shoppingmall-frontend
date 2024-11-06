@@ -27,7 +27,7 @@ const OrderDetailDialog = ({ open, handleClose }) => {
         <Modal.Title>Order Detail</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <p>예약번호: {selectedOrder.orderNum}</p>
+        <p>주문번호: {selectedOrder.orderNum}</p>
         <p>주문날짜: {selectedOrder.createdAt.slice(0, 10)}</p>
         <p>이메일: {selectedOrder.userId.email}</p>
         <p>
