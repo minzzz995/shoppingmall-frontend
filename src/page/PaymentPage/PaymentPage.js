@@ -10,7 +10,10 @@ import { createOrder } from "../../features/order/orderSlice";
 
 const PaymentPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {cartList, totalPrice} = useSelector(state=>state.cart)
   const { orderNum } = useSelector((state) => state.order);
+  
   const [cardValue, setCardValue] = useState({
     cvc: "",
     expiry: "",
@@ -18,7 +21,6 @@ const PaymentPage = () => {
     name: "",
     number: "",
   });
-  const navigate = useNavigate();
   const [firstLoading, setFirstLoading] = useState(true);
   const [shipInfo, setShipInfo] = useState({
     firstName: "",
@@ -37,7 +39,6 @@ const PaymentPage = () => {
     }
   }, [cartList, navigate]);
   
-  const {cartList, totalPrice} = useSelector(state=>state.cart)
 
   useEffect(() => {
     // 오더번호를 받으면 어디로 갈까?
@@ -53,7 +54,7 @@ const PaymentPage = () => {
       contact:{firstName, lastName, contact},
       orderList : cartList.map((item)=>{
         return {
-          productIdd: item.productId._id,
+          productId: item.productId._id,
           price: item.productId.price,
           qty: item.qty,
           size: item.size

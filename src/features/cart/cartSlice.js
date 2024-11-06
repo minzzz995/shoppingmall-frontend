@@ -110,6 +110,9 @@ const cartSlice = createSlice({
       state.totalPrice = 0;
       state.cartList = [];
     },
+    clearCartCount: (state) => {
+      state.cartItemCount = 0;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -144,5 +147,19 @@ const cartSlice = createSlice({
   },
 });
 
+export const getCartQty = createAsyncThunk(
+  "cart/getCartQty",
+  async(_, { rejectWithValue, dispatch }) => {
+    try{
+      const response = await api.get("/cart/qty");
+      if(response.status !== 200) throw new Error(response.error)
+      return response.data.qty
+    } catch (error) {
+      dispatch(showToastMessage({ message: "error", status: "error" }));
+      return rejectWithValue(error);
+    }
+  }
+)
+
 export default cartSlice.reducer;
-export const { initialCart } = cartSlice.actions;
+export const { initialCart, clearCartCount } = cartSlice.actions;
