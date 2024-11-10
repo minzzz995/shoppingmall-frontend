@@ -46,7 +46,15 @@ export const getOrder = createAsyncThunk(
 
 export const getOrderList = createAsyncThunk(
   "order/getOrderList",
-  async (query, { rejectWithValue, dispatch }) => {}
+  async (query, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.get("/order/all", { params: query }); // 전체 주문 목록 API 호출
+      if (response.status !== 200) throw new Error(response.error);
+      return response.data.data; // 전체 주문 목록 데이터 반환
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
 );
 
 export const updateOrder = createAsyncThunk(
@@ -87,6 +95,18 @@ const orderSlice = createSlice({
     .addCase(getOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+    })
+    .addCase(getOrderList.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(getOrderList.fulfilled, (state, action) => {
+      state.loading = false;
+      state.orderList = action.payload; // 전체 주문 목록 저장
+      state.totalPageNum = action.payload.totalPages || 1; // 페이지 번호 저장
+    })
+    .addCase(getOrderList.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     });
   },
 });

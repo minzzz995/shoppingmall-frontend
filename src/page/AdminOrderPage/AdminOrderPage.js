@@ -35,8 +35,9 @@ const AdminOrderPage = () => {
   ];
 
   useEffect(() => {
+    // 모든 주문을 요청
     dispatch(getOrderList({ ...searchQuery }));
-  }, [query]);
+  }, [query, dispatch]);
 
   useEffect(() => {
     if (searchQuery.ordernum === "") {
@@ -44,9 +45,8 @@ const AdminOrderPage = () => {
     }
     const params = new URLSearchParams(searchQuery);
     const queryString = params.toString();
-
     navigate("?" + queryString);
-  }, [searchQuery]);
+  }, [searchQuery, navigate]);
 
   const openEditForm = (order) => {
     setOpen(true);
