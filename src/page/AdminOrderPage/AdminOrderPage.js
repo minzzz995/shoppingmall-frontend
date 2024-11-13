@@ -7,6 +7,7 @@ import OrderDetailDialog from "./component/OrderDetailDialog";
 import OrderTable from "./component/OrderTable";
 import SearchBox from "../../common/component/SearchBox";
 import {
+  getOrder,
   getOrderList,
   setSelectedOrder,
 } from "../../features/order/orderSlice";
@@ -16,10 +17,12 @@ const AdminOrderPage = () => {
   const navigate = useNavigate();
   const [query] = useSearchParams();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
   const { orderList, totalPageNum } = useSelector((state) => state.order);
   const [searchQuery, setSearchQuery] = useState({
     page: query.get("page") || 1,
     ordernum: query.get("ordernum") || "",
+    limit: 3,
   });
   const [open, setOpen] = useState(false);
 
@@ -34,10 +37,18 @@ const AdminOrderPage = () => {
     "Status",
   ];
 
+  // useEffect(() => {
+  //   // 모든 주문을 요청
+  //   dispatch(getOrderList({ ...searchQuery }));
+  // }, [query, dispatch]);
+
   useEffect(() => {
-    // 모든 주문을 요청
-    dispatch(getOrderList({ ...searchQuery }));
-  }, [query, dispatch]);
+    if (user?.level === "admin") {
+      dispatch(getOrderList(searchQuery)); // 모든 주문 목록 요청
+    } else {
+      dispatch(getOrder()); // 자신의 주문 목록 요청
+    }
+  }, [user, searchQuery, dispatch]);
 
   useEffect(() => {
     if (searchQuery.ordernum === "") {

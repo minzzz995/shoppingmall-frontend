@@ -50,16 +50,28 @@ export const getOrderList = createAsyncThunk(
     try {
       const response = await api.get("/order/all", { params: query }); // 전체 주문 목록 API 호출
       if (response.status !== 200) throw new Error(response.error);
-      return response.data.data; // 전체 주문 목록 데이터 반환
+      return { data: response.data.data, totalPageNum: response.data.totalPageNum };
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
+// 주문 상태 업데이트 액션 추가
 export const updateOrder = createAsyncThunk(
   "order/updateOrder",
-  async ({ id, status }, { dispatch, rejectWithValue }) => {}
+  async ({ id, status }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await api.put("/order/update-status", { id, status });
+      if (response.status !== 200) throw new Error(response.data.error);
+      
+      dispatch(showToastMessage({ message: "Status updated successfully", status: "success" }));
+      return response.data.data;
+    } catch (error) {
+      dispatch(showToastMessage({ message: "Failed to update status", status: "error" }));
+      return rejectWithValue(error.message);
+    }
+  }
 );
 
 // Order slice
@@ -101,11 +113,24 @@ const orderSlice = createSlice({
     })
     .addCase(getOrderList.fulfilled, (state, action) => {
       state.loading = false;
-      state.orderList = action.payload; // 전체 주문 목록 저장
-      state.totalPageNum = action.payload.totalPages || 1; // 페이지 번호 저장
-    })
+      state.orderList = action.payload.data; // 전체 주문 목록 저장
+      state.totalPageNum = action.payload.totalPageNum; // 총 페이지 수 저장
+    })    
     .addCase(getOrderList.rejected, (state, action) => {
       state.loading = false;
+      state.error = action.payload;
+    })
+    .addCase(updateOrder.fulfilled, (state, action) => {
+      const updatedOrder = action.payload;
+      
+      const index = state.orderList.findIndex(order => order._id === updatedOrder._id);
+      if (index !== -1) {
+        state.orderList[index] = updatedOrder;
+      }
+
+      state.selectedOrder = updatedOrder;
+    })
+    .addCase(updateOrder.rejected, (state, action) => {
       state.error = action.payload;
     });
   },
