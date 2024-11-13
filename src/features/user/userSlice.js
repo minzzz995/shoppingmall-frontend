@@ -21,12 +21,15 @@ export const loginWithGoogle = createAsyncThunk(
   "user/loginWithGoogle",
   async (token, { rejectWithValue }) => {
     try { 
-      const response = await api.post("/auth/google", {token})
-      if(response.status !== 200) throw new Error(response.error)
-      
-      return response.data.user;
+      const response = await api.post("/auth/google", { token });
+      if (response.status === 200 && response.data.user && response.data.token) {
+        sessionStorage.setItem("token", response.data.token);
+        return response.data; // user와 token 모두 반환
+      } else {
+        throw new Error("Invalid response data");
+      }
     } catch (error) {
-      return rejectWithValue(error.error)
+      return rejectWithValue(error.message || error.response.data.error);
     }
   }
 );
@@ -116,23 +119,18 @@ const userSlice = createSlice({
       state.user = null;
       sessionStorage.removeItem("token");
     })
-    .addCase(loginWithGoogle.pending, (state)=>{
-      state.loading=true;
+    .addCase(loginWithGoogle.pending, (state) => {
+      state.loading = true;
     })
-    .addCase(loginWithGoogle.fulfilled, (state, action)=>{
-      state.loading=false;
-      state.user = action.payload.user
-      state.loginError=null
-
-      sessionStorage.setItem("token", action.payload.token)
+    .addCase(loginWithGoogle.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.user; // user 정보를 상태에 저장
+      state.loginError = null;
     })
-    .addCase(loginWithGoogle.rejected, (state, action)=>{
-      state.loading=false;
-      state.loginError=action.payload;
-    })
-    .addCase("user/logout", (state) => {
-      state.user = null;
-    });    
+    .addCase(loginWithGoogle.rejected, (state, action) => {
+      state.loading = false;
+      state.loginError = action.payload;
+    });
   },
 });
 export const { clearErrors } = userSlice.actions;
